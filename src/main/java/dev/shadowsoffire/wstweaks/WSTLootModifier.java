@@ -1,11 +1,10 @@
 package dev.shadowsoffire.wstweaks;
 
-import java.util.function.Supplier;
-
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-
+import io.github.fabricators_of_create.porting_lib.loot.IGlobalLootModifier;
+import io.github.fabricators_of_create.porting_lib.loot.LootModifier;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -18,8 +17,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.common.loot.LootModifier;
+
+import java.util.function.Supplier;
+
+import static dev.shadowsoffire.wstweaks.WitherSkeletonTweaks.CONFIG;
 
 public class WSTLootModifier extends LootModifier {
 
@@ -44,7 +45,7 @@ public class WSTLootModifier extends LootModifier {
             }
         }
 
-        if (ent != null && ent.getClass() == WitherSkeleton.class && ctx.getRandom().nextFloat() <= WSTConfig.shardDropChance) {
+        if (ent != null && ent.getClass() == WitherSkeleton.class && ctx.getRandom().nextFloat() <= CONFIG.shardDropChance.value()) {
             if (generatedLoot.stream().noneMatch(i -> i.getItem() == Items.WITHER_SKELETON_SKULL)) {
                 generatedLoot.add(new ItemStack(WitherSkeletonTweaks.fragment));
             }

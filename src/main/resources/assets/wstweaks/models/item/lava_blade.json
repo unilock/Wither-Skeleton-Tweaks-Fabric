@@ -1,6 +1,6 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "wstweaks:items/sword_lava"
+        "layer0": "wstweaks:item/sword_lava"
     }
 }

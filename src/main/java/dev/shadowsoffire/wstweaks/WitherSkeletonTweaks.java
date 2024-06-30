@@ -1,70 +1,85 @@
 package dev.shadowsoffire.wstweaks;
 
-import dev.shadowsoffire.placebo.util.RunnableReloader;
+import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
+import io.github.fabricators_of_create.porting_lib.loot.PortingLibLoot;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.ForgeTier;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
 
-@Mod(WitherSkeletonTweaks.MODID)
-public class WitherSkeletonTweaks {
+public class WitherSkeletonTweaks implements ModInitializer {
 
     public static final String MODID = "wstweaks";
-    public static Tier IMMOLATION;
+    public static final WSTConfig CONFIG = WSTConfig.createToml(FabricLoader.getInstance().getConfigDir(), "", MODID, WSTConfig.class);
+    public static final Tier IMMOLATION = new Tier() {
+        @Override
+        public int getUses() {
+            return CONFIG.swordDurability.value();
+        }
+
+        @Override
+        public float getSpeed() {
+            return CONFIG.swordAtkSpeed.value();
+        }
+
+        @Override
+        public float getAttackDamageBonus() {
+            return CONFIG.swordDamage.value();
+        }
+
+        @Override
+        public int getLevel() {
+            return 9;
+        }
+
+        @Override
+        public int getEnchantmentValue() {
+            return 30;
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return Ingredient.of(Items.NETHER_STAR);
+        }
+    };
 
     static Item fragment, lavaBlade, blazeBlade;
 
-    public WitherSkeletonTweaks() {
-        FMLJavaModLoadingContext.get().getModEventBus().register(this);
-        WSTConfig.load();
-        IMMOLATION = new ForgeTier(9, WSTConfig.swordDurability, WSTConfig.swordAtkSpeed, WSTConfig.swordDamage, 30, null, () -> Ingredient.of(Items.NETHER_STAR));
-        MinecraftForge.EVENT_BUS.addListener(this::reload);
+    @Override
+    public void onInitialize() {
+        registerItems();
+        registerGMLSer();
+        tabs();
+
+        LivingEntityEvents.ON_JOIN_WORLD.register((entity, world, loadedFromDisk) -> WSTEvents.join(entity));
+        LivingEntityEvents.DROPS.register((target, source, drops, lootingLevel, recentlyHit) -> WSTEvents.delSwords(target, drops));
     }
 
-    @SubscribeEvent
-    public void register(RegisterEvent e) {
-        if (e.getForgeRegistry() == (Object) ForgeRegistries.ITEMS) {
-            this.registerItems();
-        }
-        if (e.getForgeRegistry() == (Object) ForgeRegistries.GLOBAL_LOOT_MODIFIER_SERIALIZERS.get()) {
-            this.registerGMLSer();
-        }
-    }
-
-    @SubscribeEvent
-    public void tabs(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTabKey() == CreativeModeTabs.COMBAT) {
+    public void tabs() {
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(e -> {
             e.accept(lavaBlade);
             e.accept(blazeBlade);
-        }
-        else if (e.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+        });
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(e -> {
             e.accept(fragment);
-        }
+        });
     }
 
     private void registerItems() {
-        ForgeRegistries.ITEMS.register("fragment", fragment = new Item(new Item.Properties()));
-        ForgeRegistries.ITEMS.register("lava_blade", lavaBlade = new ItemImmolationBlade());
-        ForgeRegistries.ITEMS.register("blaze_blade", blazeBlade = new ItemImmolationBlade());
+        fragment = Registry.register(BuiltInRegistries.ITEM, loc("fragment"), new Item(new Item.Properties()));
+        lavaBlade = Registry.register(BuiltInRegistries.ITEM, loc("lava_blade"), new ItemImmolationBlade());
+        blazeBlade = Registry.register(BuiltInRegistries.ITEM, loc("blaze_blade"), new ItemImmolationBlade());
     }
 
     private void registerGMLSer() {
-        ForgeRegistries.GLOBAL_LOOT_MODIFIER_SERIALIZERS.get().register("wstmodifier", WSTLootModifier.CODEC.get());
-    }
-
-    public void reload(AddReloadListenerEvent e) {
-        e.addListener(new RunnableReloader(WSTConfig::load));
+        Registry.register(PortingLibLoot.GLOBAL_LOOT_MODIFIER_SERIALIZERS.get(), loc("wstmodifier"), WSTLootModifier.CODEC.get());
     }
 
     public static ResourceLocation loc(String s) {

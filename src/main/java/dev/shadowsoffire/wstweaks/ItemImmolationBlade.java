@@ -1,7 +1,5 @@
 package dev.shadowsoffire.wstweaks;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
@@ -12,7 +10,7 @@ import net.minecraft.world.item.SwordItem;
 public class ItemImmolationBlade extends SwordItem {
 
     public ItemImmolationBlade() {
-        super(WitherSkeletonTweaks.IMMOLATION, 0, WSTConfig.swordAtkSpeed, new Item.Properties());
+        super(WitherSkeletonTweaks.IMMOLATION, 0, WitherSkeletonTweaks.CONFIG.swordAtkSpeed.value(), new Item.Properties());
     }
 
     @Override
@@ -21,7 +19,7 @@ public class ItemImmolationBlade extends SwordItem {
         super.hurtEnemy(stack, target, attacker);
         if (target instanceof AbstractSkeleton) {
             target.setHealth(1);
-            target.hurt(new DamageSource(target.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.FIREWORKS)), 150);
+            target.hurt(target.damageSources().source(DamageTypes.FIREWORKS), 150);
             double i = target.getCommandSenderWorld().random.nextDouble() * 4.0D;
             double d = target.getCommandSenderWorld().random.nextDouble() * 4.0D;
             double k = target.getCommandSenderWorld().random.nextDouble() * 4.0D;

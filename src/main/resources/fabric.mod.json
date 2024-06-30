@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "wstweaks",
+	"version": "${version}",
+	"name": "Wither Skeleton Tweaks",
+	"description": "Turns all Skeletons in the Nether into Wither Skeletons, and adds Skull Fragments.",
+	"authors": [
+		"Shadows_of_Fire",
+		"unilock"
+	],
+	"contact": {
+		"sources": "https://github.com/unilock/Wither-Skeleton-Tweaks-Fabric",
+		"issues": "https://github.com/unilock/Wither-Skeleton-Tweaks-Fabric/issues"
+	},
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.shadowsoffire.wstweaks.WitherSkeletonTweaks"
+		]
+	},
+	"mixins": [
+		"wstweaks.mixins.json"
+	],
+	"depends": {
+		"fabricloader": "*",
+		"minecraft": ">=1.20",
+		"fabric-api": "*"
+	}
+}
